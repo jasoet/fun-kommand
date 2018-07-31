@@ -1,0 +1,176 @@
+buildscript {
+    ext {
+        kotlinVersion = "1.2.51"
+        coroutineVersion = "0.24.0"
+        arrowVersion = "0.7.2"
+        jUnitVersion = "5.1.0"
+        spekVersion = "1.1.5"
+        kluentVersion = "1.35"
+        commonsIOVersion = '2.5'
+        logbackVersion = "1.2.3"
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+}
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.2.51"
+    id "org.jetbrains.kotlin.kapt" version "1.2.51"
+    id "io.gitlab.arturbosch.detekt" version "1.0.0.RC8"
+    id "com.jfrog.bintray" version "1.8.4"
+}
+
+group 'id.jasoet.funkommand'
+version '0.1'
+
+apply plugin: "jacoco"
+apply plugin: "idea"
+
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion"
+    compile "commons-io:commons-io:${commonsIOVersion}"
+    compile "ch.qos.logback:logback-core:$logbackVersion"
+    compile "ch.qos.logback:logback-classic:$logbackVersion"
+    compile "io.arrow-kt:arrow-core:$arrowVersion"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+    testCompile "org.amshove.kluent:kluent:$kluentVersion"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jUnitVersion"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jUnitVersion"
+
+    testCompile("org.jetbrains.spek:spek-api:$spekVersion") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+    testRuntime("org.jetbrains.spek:spek-junit-platform-engine:$spekVersion") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.0"
+}
+
+detekt {
+    version = "1.0.0.RC8"
+    profile("main") {
+        input = "$projectDir/src/main/kotlin"
+        config = "$rootDir/detekt.yml"
+        filters = ".*test.*,.*/resources/.*,.*/tmp/.*"
+    }
+}
+
+test {
+    finalizedBy detektCheck
+    finalizedBy jacocoTestReport
+
+    useJUnitPlatform {
+        includeEngines 'spek'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
+compileKotlin {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+        apiVersion = "1.2"
+        languageVersion = "1.2"
+        allWarningsAsErrors = true
+    }
+}
+
+compileTestKotlin {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+        apiVersion = "1.2"
+        languageVersion = "1.2"
+        allWarningsAsErrors = true
+    }
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+
+        sourceDirs += file('build/generated/source/kapt/main')
+        testSourceDirs += file('build/generated/source/kapt/test')
+
+        sourceDirs += file('build/generated/source/kaptKotlin/main')
+        testSourceDirs += file('build/generated/source/kaptKotlin/test')
+
+        sourceDirs += file('build/tmp/kapt/main/kotlinGenerated')
+        testSourceDirs += file('build/tmp/kapt/test/kotlinGeneratedst')
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    configurations = ['archives']
+    publish = true
+    pkg {
+        userOrg = 'id.jasoet'
+        repo = 'funkomand'
+        name = 'funkomand'
+        desc = "Kotlin simple command line wrapper"
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/jasoet/funpdf.git'
+        issueTrackerUrl = 'https://github.com/jasoet/funpdf/issues'
+        labels = ['kotlin', 'pdf', 'wkthmltopdf']
+        publicDownloadNumbers = true
+        override = true
+        version {
+            name = "${project.version}"
+            desc = "funpdf version ${project.version}, Need More Test!."
+            vcsTag = "${project.version}"
+        }
+    }
+}
+
+task compile(dependsOn: "testClasses")
+
+wrapper {
+    gradleVersion = '4.9'
+}
