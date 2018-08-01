@@ -17,5 +17,6 @@ cache:
 script:
   - ./gradlew clean build
 
-after_script:
-  - bash <(curl -s https://codecov.io/bash) -t 937bfdcf-fffe-4e83-839c-bf3cfe708662
+after_success:
+- bash <(curl -s https://codecov.io/bash) -t 937bfdcf-fffe-4e83-839c-bf3cfe708662
+
