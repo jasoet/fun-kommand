@@ -1,5 +1,6 @@
 # Simple command-line wrapper written in Kotlin
 
+[![Build Status](https://travis-ci.org/jasoet/fun-kommand.svg?branch=master)](https://travis-ci.org/jasoet/fun-kommand)
 [![codecov](https://codecov.io/gh/jasoet/fun-kommand/branch/master/graph/badge.svg)](https://codecov.io/gh/jasoet/fun-kommand)
 
 Execute command-line by spawning ProcessBuilder
