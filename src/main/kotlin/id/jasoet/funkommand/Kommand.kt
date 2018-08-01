@@ -29,6 +29,34 @@ import kotlin.reflect.full.isSuperclassOf
 
 
 /**
+ * Split `String`, execute and wrap it inside Try<Int> monad
+ * @see tryExecute
+ */
+fun String.tryExecute(
+    input: Any? = null,
+    output: Any? = null,
+    environment: Map<String, String> = emptyMap(),
+    directory: String = homeDir(),
+    config: (ProcessBuilder) -> Unit = {}
+): Try<Int> {
+    return this.trim().split("\\s+".toRegex()).tryExecute(input, output, environment, directory, config)
+}
+
+/**
+ * Split `String` and execute it
+ * @see execute
+ */
+fun String.execute(
+    input: Any? = null,
+    output: Any? = null,
+    environment: Map<String, String> = emptyMap(),
+    directory: String = homeDir(),
+    config: (ProcessBuilder) -> Unit = {}
+): Int {
+    return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, config)
+}
+
+/**
  * Execute command in form of List<String> and wrap it on Try<T> monad.
  * @see execute
  */

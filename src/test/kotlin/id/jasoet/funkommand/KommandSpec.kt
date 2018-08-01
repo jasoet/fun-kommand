@@ -41,6 +41,9 @@ object KommandSpec : Spek({
                 returnCode.shouldEqualTo(0)
                 val tryReturn = listOf("ls", "-alh").tryExecute()
                 tryReturn.isSuccess() shouldEqualTo true
+
+                "ls -alh".execute() shouldEqualTo 0
+                "ls -alh ".tryExecute().isSuccess() shouldEqualTo true
             }
 
             it("should throw exception for non exist command") {
@@ -50,6 +53,12 @@ object KommandSpec : Spek({
 
                 val tryReturn = listOf("notExistCommand", "-alh").tryExecute()
                 tryReturn.isFailure() shouldEqualTo true
+
+                assertFailsWith(IOException::class) {
+                    "notExistCommand -alh".execute()
+                }
+
+                "notExistCommand -alh".tryExecute().isFailure() shouldEqualTo true
             }
         }
 
@@ -120,7 +129,9 @@ object KommandSpec : Spek({
                 val byteOutputStream = ByteArrayOutputStream()
                 val returnCode = listOf("ls", "-alh").execute(output = byteOutputStream)
                 returnCode shouldEqualTo 0
-                val stringResult = byteOutputStream.toString(Charsets.UTF_8.name())
+                val stringResult = byteOutputStream.use {
+                    it.toString(Charsets.UTF_8.name())
+                }
                 println(stringResult)
                 stringResult.shouldNotBeNullOrBlank()
             }
