@@ -18,5 +18,6 @@ script:
   - ./gradlew clean build
 
 after_success:
+- ./gradlew bintrayUpload
 - bash <(curl -s https://codecov.io/bash) -t 937bfdcf-fffe-4e83-839c-bf3cfe708662
 
