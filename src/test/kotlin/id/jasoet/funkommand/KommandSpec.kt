@@ -17,7 +17,9 @@
 package id.jasoet.funkommand
 
 import org.amshove.kluent.shouldBe
+import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldEqualTo
+import org.amshove.kluent.shouldNotBeNull
 import org.amshove.kluent.shouldNotBeNullOrBlank
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
@@ -37,12 +39,13 @@ object KommandSpec : Spek({
 
         on("Executing Command") {
             it("should return zero for success command") {
-                val returnCode = listOf("ls", "-alh").execute()
-                returnCode.shouldEqualTo(0)
+                val inputStream = listOf("ls", "-alh").execute()
+                inputStream.shouldNotBeNull()
+
                 val tryReturn = listOf("ls", "-alh").tryExecute()
                 tryReturn.isSuccess() shouldEqualTo true
 
-                "ls -alh".execute() shouldEqualTo 0
+                "ls -alh".execute().shouldNotBeNull()
                 "ls -alh ".tryExecute().isSuccess() shouldEqualTo true
             }
 
@@ -99,18 +102,23 @@ object KommandSpec : Spek({
             val inputFile = path.toFile()
 
             it("should able to process string input") {
-                val returnCode = listOf("cat").execute(input = fileContent, output = System.out)
-                returnCode shouldEqualTo 0
+                val inputStream = listOf("cat").execute(input = fileContent, output = System.out)
+                inputStream.shouldBeNull()
             }
 
             it("should able to process file input") {
-                val returnCode = listOf("cat").execute(input = inputFile, output = System.out)
-                returnCode shouldEqualTo 0
+                val inputStream = listOf("cat").execute(input = inputFile, output = System.out)
+                inputStream.shouldBeNull()
             }
 
             it("should able to process InputStream input") {
-                val returnCode = listOf("cat").execute(input = FileInputStream(inputFile), output = System.out)
-                returnCode shouldEqualTo 0
+                val inputStream = "cat".execute(input = FileInputStream(inputFile))
+                inputStream.shouldNotBeNull()
+            }
+
+            it("should able to process file input and return String") {
+                val inputStream = "cat".executeToString(input = inputFile)
+                inputStream.shouldNotBeNullOrBlank()
             }
         }
 
@@ -120,15 +128,15 @@ object KommandSpec : Spek({
 
             it("should able to process file output") {
                 val outputFile = Paths.get(tmpDir, UUID.randomUUID().toString()).toFile()
-                val returnCode = listOf("ls", "-alh").execute(output = outputFile)
-                returnCode shouldEqualTo 0
+                val inputStream = listOf("ls", "-alh").execute(output = outputFile)
+                inputStream.shouldBeNull()
                 outputFile.exists() shouldBe true
             }
 
             it("should able to process OutputStream output") {
                 val byteOutputStream = ByteArrayOutputStream()
-                val returnCode = listOf("ls", "-alh").execute(output = byteOutputStream)
-                returnCode shouldEqualTo 0
+                val inputStream = listOf("ls", "-alh").execute(output = byteOutputStream)
+                inputStream.shouldBeNull()
                 val stringResult = byteOutputStream.use {
                     it.toString(Charsets.UTF_8.name())
                 }

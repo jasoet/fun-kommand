@@ -20,8 +20,8 @@ import arrow.core.Try
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
+import java.io.BufferedInputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
@@ -29,8 +29,50 @@ import kotlin.reflect.full.isSuperclassOf
 
 
 /**
- * Split `String`, execute and wrap it inside Try<Int> monad
+ * Split `String`, execute it and return String.
+ * @see executeToString
+ *
+ * @author Deny Prasetyo
+ * @since 1.0.0
+ */
+fun String.executeToString(
+    input: Any? = null,
+    environment: Map<String, String> = emptyMap(),
+    directory: String = homeDir(),
+    config: (ProcessBuilder) -> Unit = {}
+): String {
+    return this.trim().split("\\s+".toRegex()).executeToString(input, environment, directory, config)
+}
+
+/**
+ * Accept command as `List<String>`, execute it and return String.
+ * @see execute
+ *
+ * @author Deny Prasetyo
+ * @since 1.0.0
+ */
+fun List<String>.executeToString(
+    input: Any? = null,
+    environment: Map<String, String> = emptyMap(),
+    directory: String = homeDir(),
+    config: (ProcessBuilder) -> Unit = {}
+): String {
+    val inputStream = this.execute(input, null, environment, directory, config)
+    return if (inputStream != null) {
+        inputStream.use {
+            IOUtils.toString(it, "UTF-8")
+        }
+    } else {
+        ""
+    }
+}
+
+/**
+ * Split `String`, execute and wrap it inside Try<BufferedInputStream?> monad
  * @see tryExecute
+ *
+ * @author Deny Prasetyo
+ * @since 1.0.0
  */
 fun String.tryExecute(
     input: Any? = null,
@@ -38,13 +80,16 @@ fun String.tryExecute(
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
     config: (ProcessBuilder) -> Unit = {}
-): Try<Int> {
+): Try<BufferedInputStream?> {
     return this.trim().split("\\s+".toRegex()).tryExecute(input, output, environment, directory, config)
 }
 
 /**
  * Split `String` and execute it
  * @see execute
+ *
+ * @author Deny Prasetyo
+ * @since 1.0.0
  */
 fun String.execute(
     input: Any? = null,
@@ -52,13 +97,16 @@ fun String.execute(
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
     config: (ProcessBuilder) -> Unit = {}
-): Int {
+): BufferedInputStream? {
     return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, config)
 }
 
 /**
- * Execute command in form of List<String> and wrap it on Try<T> monad.
+ * Execute command in form of List<String> and wrap it on Try<BufferedInputStream?> monad.
  * @see execute
+ *
+ * @author Deny Prasetyo
+ * @since 1.0.0
  */
 fun List<String>.tryExecute(
     input: Any? = null,
@@ -66,7 +114,7 @@ fun List<String>.tryExecute(
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
     config: (ProcessBuilder) -> Unit = {}
-): Try<Int> {
+): Try<BufferedInputStream?> {
     return Try {
         this.execute(input, output, environment, directory, config)
     }
@@ -74,8 +122,8 @@ fun List<String>.tryExecute(
 
 /**
  * Execute command in form of List<String>.
- * Able to handle standard input source from File, InputStream and String
- * Able to handle standard output source to File and OutputStream
+ * Redirect standard input from File, InputStream and String
+ * Redirect standard output source to File and OutputStream
  *
  * Note:
  * - InputStream will be closed after execution
@@ -83,9 +131,12 @@ fun List<String>.tryExecute(
  *
  * @param input Standard input for command, able to receive File, InputStream and String input.
  * @param output Standard output for command, able to send output to File and OutputStream.
- * @return 0 if command executed successfully
+ * @param environment Environment variable supplied to command
+ *
+ * @return BufferedInputStream if output not defined or null if otherwise
  * @throws java.io.IOException if command return non-zero
  * @author Deny Prasetyo
+ * @since 1.0.0
  */
 
 fun List<String>.execute(
@@ -94,7 +145,7 @@ fun List<String>.execute(
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
     config: (ProcessBuilder) -> Unit = {}
-): Int {
+): BufferedInputStream? {
 
     if (input != null && supportedInput.none { it.isSuperclassOf(input.javaClass.kotlin) }) {
         throw IllegalArgumentException("Input ${input.javaClass} is not supported!")
@@ -139,19 +190,20 @@ fun List<String>.execute(
     return when (output) {
         is File -> {
             processBuilder.redirectOutput(output)
-            processBuilder.start().waitFor()
+            val process = processBuilder.start()
+            process.waitFor()
+            null
         }
         is OutputStream -> {
-            val inputFile = File(tmpDir, UUID.randomUUID().toString())
-            processBuilder.redirectOutput(inputFile)
-            val exitCode = processBuilder.start().waitFor()
-
-            inputFile.copyTo(output)
-
-            exitCode
+            val process = processBuilder.start()
+            process.waitFor()
+            IOUtils.copy(process.inputStream, output)
+            null
         }
         else -> {
-            processBuilder.start().waitFor()
+            val process = processBuilder.start()
+            process.waitFor()
+            BufferedInputStream(process.inputStream)
         }
     }
 }
@@ -163,9 +215,4 @@ private fun homeDir(): String {
     return System.getProperty("user.home")
 }
 
-private fun File.copyTo(output: OutputStream) {
-    FileInputStream(this).use { fis ->
-        IOUtils.copy(fis, output)
-    }
-}
 

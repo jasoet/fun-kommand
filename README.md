@@ -33,19 +33,21 @@ compile 'id.jasoet:fun-kommand:1.0.0'
 ### Execute simple command
 ```kotlin
 // Will throw IOException if command return non zero
-val returnCode:Int = listOf("ls", "-alh").execute()
+val result:BufferedInputStream? = listOf("ls", "-alh").execute()
 
-// Wrap command inside Try<Int> monad 
-val result:Try<Int> = "ls -alh".tryExecute()
+// Wrap command inside Try<BufferedInputStream?> monad 
+val result:Try<BufferedInputStream?> = "ls -alh".tryExecute()
 
 // Execute command and redirect output to standard out 
-val returnCode:Int = "ls -alh".execute(output = System.out)
+val result:BufferedInputStream? = "ls -alh".execute(output = System.out)
+// Result will always be null if output is defined
 ```
 
 ### Accept `File` Input
 ```kotlin
 val file = File("/var/log/filename.ext")
-val returnCode = "tail -f".execute(input = file, output = System.out)
+val result = "tail -f".execute(input = file, output = System.out)
+// Result will always be null if output is defined
 ```
 
 ### Accept `String` Input
@@ -55,26 +57,34 @@ Lorem Ipsum is simply dummy text of the printing and typesetting industry.
 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
 when an unknown printer took a galley of type and scrambled it to make a type specimen book.
 """
-val returnCode = listOf("cat").execute(input = stringInput, output = System.out)
+val result:String = "cat".executeToString(input = stringInput)
 ```
 
 ### Accept `InputStream` input
 ```kotlin
 val inputStream = FileInputStream("/home/root/input-text.txt")
-val returnCode = listOf("cat").execute(input = inputStream, output = System.out)
+val result:String = "cat".executeToString(input = inputStream)
 ```
 
 ### Redirect Output to `File` 
 ```kotlin
 val outputFile = Paths.get(tmpDir, UUID.randomUUID().toString()).toFile()
-val returnCode = "ls -alh".execute(output = outputFile)
+val result = "ls -alh".execute(output = outputFile)
+// Result will always be null if output is defined
 ```
 
 ### Redirect Output to `OutputStream` and convert it to `String`
 ```kotlin
 val byteOutputStream = ByteArrayOutputStream()
-val returnCode = "ls -alh".execute(output = byteOutputStream)
+val result = "ls -alh".execute(output = byteOutputStream)
+
+// Result will always be null if output is defined
 val stringResult = byteOutputStream.use {
     it.toString(Charsets.UTF_8.name())
 }
+```
+
+### Execute Command and return String
+```kotlin
+val result:String = "ls -alh".executeToString()
 ```
