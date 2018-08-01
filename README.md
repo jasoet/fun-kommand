@@ -12,6 +12,8 @@ Execute command-line by spawning ProcessBuilder
 - Redirect standard output to `File` or `OutputStream` (including `System.out`).
 - Accept `Map` as environment variable.
 - Helper for accept standard input from main Java process as `Sequence<String>`.
+- Return `BufferedInputStream` if output is not redirected, null if otherwise.
+- `InputStream` from a command will be easily to be piped (as input) to other command. 
 
 ## Gradle
 
@@ -26,7 +28,7 @@ repositories {
 
 ### Add dependency 
 ```groovy
-compile 'id.jasoet:fun-kommand:1.0.0'
+compile 'id.jasoet:fun-kommand:<version>'
 ```
 
 ## Usage
@@ -77,8 +79,8 @@ val result = "ls -alh".execute(output = outputFile)
 ```kotlin
 val byteOutputStream = ByteArrayOutputStream()
 val result = "ls -alh".execute(output = byteOutputStream)
-
 // Result will always be null if output is defined
+
 val stringResult = byteOutputStream.use {
     it.toString(Charsets.UTF_8.name())
 }
