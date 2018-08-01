@@ -1,5 +1,6 @@
 buildscript {
     ext {
+        version = project.property('version')
         bintrayUser = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
         bintrayApiKey = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
 
@@ -206,6 +207,8 @@ bintray {
     override = true
 
     pkg {
+        name = "${project.name}"
+        desc = "Simple command-line wrapper for Kotlin"
         repo = 'fun'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/jasoet/fun-kommand'
@@ -215,6 +218,7 @@ bintray {
         version {
             name = "${project.version}"
             vcsTag = "${project.version}"
+            desc = "Fun Kommand version ${project.version}."
         }
     }
 }
