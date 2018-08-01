@@ -19,7 +19,9 @@ package id.jasoet.funkommand
 import org.apache.commons.io.IOUtils
 import java.io.InputStream
 
-val standardInput: Sequence<String> by lazy { generateSequence { readLine() } }
+val sequenceInput: Sequence<String> by lazy { generateSequence { readLine() } }
+
+val standardInput: InputStream by lazy { System.`in` }
 
 fun standardInputAvailable(): Boolean {
     return System.`in`.available() > 0

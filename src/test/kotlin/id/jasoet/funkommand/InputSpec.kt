@@ -18,29 +18,22 @@ package id.jasoet.funkommand
 
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEmpty
+import org.amshove.kluent.shouldEqualTo
+import org.amshove.kluent.shouldNotBeNull
 import org.amshove.kluent.shouldNotBeNullOrBlank
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.UUID
 
 object InputSpec : Spek({
 
     given("Input Extension") {
 
-        on("Handling Standard Input") {
-
-            it("should return false when checking stdIn availability on test environment  ") {
-                standardInputAvailable() shouldBe false
-            }
-
-            it("should return empty seq when getting stdIn  on test environment  ") {
-                standardInput.toList().shouldBeEmpty()
-            }
-        }
-
-        on("piping some commands") {
-            val fileContent = """
+        val fileContent = """
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                     Morbi eu suscipit orci. Morbi eleifend erat erat, ut fringilla sapien tempus sed.
                     Maecenas molestie et lorem quis egestas.
@@ -50,6 +43,35 @@ object InputSpec : Spek({
                     Morbi scelerisque eget urna fringilla porttitor.
                     Proin ex nisi, accumsan et pretium in, euismod vitae lorem.
                 """.trimIndent()
+
+        on("Wrapping standard *nix command") {
+            val tmpDir: String = System.getProperty("java.io.tmpdir")
+            val path = Paths.get(tmpDir, UUID.randomUUID().toString())
+
+            Files.write(path, fileContent.toByteArray())
+            val inputFile = path.toFile()
+            it("Should able to count line from file using wc command") {
+                val countOnString = "wc -l".executeToString(input = inputFile)
+                countOnString.trim().toInt() shouldEqualTo 7
+            }
+        }
+
+        on("Handling Standard Input") {
+
+            it("should return false when checking stdIn availability on test environment  ") {
+                standardInputAvailable() shouldBe false
+            }
+
+            it("should return empty seq when getting stdIn  on test environment  ") {
+                sequenceInput.toList().shouldBeEmpty()
+            }
+
+            it("standardInput should not be null") {
+                standardInput.shouldNotBeNull()
+            }
+        }
+
+        on("piping some commands") {
 
             it("should able to pipe more than one commands") {
 
