@@ -14,6 +14,7 @@ Execute command-line by spawning ProcessBuilder
 - Helper for accept standard input from main Java process as `Sequence<String>`.
 - Return `BufferedInputStream` if output is not redirected, null if otherwise.
 - `InputStream` from a command will be easily to be piped (as input) to other command. 
+- Pipe command with other command
 
 ## Gradle
 
@@ -89,4 +90,20 @@ val stringResult = byteOutputStream.use {
 ### Execute Command and return String
 ```kotlin
 val result:String = "ls -alh".executeToString()
+```
+
+### Pipe several command and return as String
+```kotlin
+val result = "cat".execute(input = inputFile)
+    .pipe("echo")
+    .pipe("wc")
+    .toString()
+    
+val result = "cat".execute(input = inputFile)
+    .pipe {
+        "echo".execute(input = it)
+    }
+    .pipe {
+        "wc".execute(it)
+    }    
 ```

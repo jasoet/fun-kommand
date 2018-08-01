@@ -18,6 +18,7 @@ package id.jasoet.funkommand
 
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEmpty
+import org.amshove.kluent.shouldNotBeNullOrBlank
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
@@ -35,6 +36,43 @@ object InputSpec : Spek({
 
             it("should return empty seq when getting stdIn  on test environment  ") {
                 standardInput.toList().shouldBeEmpty()
+            }
+        }
+
+        on("piping some commands") {
+            val fileContent = """
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Morbi eu suscipit orci. Morbi eleifend erat erat, ut fringilla sapien tempus sed.
+                    Maecenas molestie et lorem quis egestas.
+                    Aliquam ut lacus quis nulla auctor efficitur nec id leo.
+                    Vivamus blandit est varius feugiat eleifend.
+                    Etiam condimentum quis lorem in cursus.
+                    Morbi scelerisque eget urna fringilla porttitor.
+                    Proin ex nisi, accumsan et pretium in, euismod vitae lorem.
+                """.trimIndent()
+
+            it("should able to pipe more than one commands") {
+
+                val result = "cat".execute(input = fileContent)
+                    .pipe("echo")
+                    .pipe("wc")
+                    .toString()
+
+                result.shouldNotBeNullOrBlank()
+            }
+
+            it("should able to pipe more than one commands with lamba parameter") {
+
+                val result = "cat".execute(input = fileContent)
+                    .pipe {
+                        "echo".execute(input = it)
+                    }
+                    .pipe {
+                        "wc".execute(it)
+                    }
+                    .toString()
+
+                result.shouldNotBeNullOrBlank()
             }
         }
     }

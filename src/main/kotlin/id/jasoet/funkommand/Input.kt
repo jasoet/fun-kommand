@@ -16,8 +16,35 @@
 
 package id.jasoet.funkommand
 
+import org.apache.commons.io.IOUtils
+import java.io.InputStream
+
 val standardInput: Sequence<String> by lazy { generateSequence { readLine() } }
 
 fun standardInputAvailable(): Boolean {
     return System.`in`.available() > 0
+}
+
+fun InputStream?.pipe(ops: (InputStream) -> InputStream?): InputStream? {
+    return if (this != null) {
+        ops(this)
+    } else {
+        null
+    }
+}
+
+fun InputStream?.pipe(command: String): InputStream? {
+    return if (this != null) {
+        command.execute(this)
+    } else {
+        null
+    }
+}
+
+fun InputStream?.toString(): String {
+    return if (this != null) {
+        IOUtils.toString(this, Charsets.UTF_8)
+    } else {
+        ""
+    }
 }
