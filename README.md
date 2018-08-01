@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/jasoet/fun-kommand.svg?branch=master)](https://travis-ci.org/jasoet/fun-kommand)
 [![codecov](https://codecov.io/gh/jasoet/fun-kommand/branch/master/graph/badge.svg)](https://codecov.io/gh/jasoet/fun-kommand)
+[![Download](https://api.bintray.com/packages/jasoet/fun/fun-kommand/images/download.svg) ](https://bintray.com/jasoet/fun/fun-kommand/_latestVersion)
 
 Execute command-line by spawning ProcessBuilder
 
