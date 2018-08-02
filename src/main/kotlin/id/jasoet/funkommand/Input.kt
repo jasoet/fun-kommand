@@ -16,8 +16,12 @@
 
 package id.jasoet.funkommand
 
+import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
+import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
+import java.util.UUID
 
 val sequenceInput: Sequence<String> by lazy { generateSequence { readLine() } }
 
@@ -43,10 +47,34 @@ fun InputStream?.pipe(command: String): InputStream? {
     }
 }
 
-fun InputStream?.toString(): String {
+fun InputStream?.asString(): String {
     return if (this != null) {
         IOUtils.toString(this, Charsets.UTF_8)
     } else {
         ""
     }
+}
+
+fun InputStream?.asTempFile(): File? {
+    return this?.let {
+        val tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp")
+        it.toFile(tempFile)
+        tempFile
+    }
+}
+
+fun InputStream?.toOutput(output: OutputStream) {
+    this?.use {
+        IOUtils.copy(it, output)
+    }
+}
+
+fun InputStream?.toFile(file: File) {
+    this?.let {
+        FileUtils.copyInputStreamToFile(it, file)
+    }
+}
+
+fun InputStream?.print() {
+    this.toOutput(System.out)
 }
