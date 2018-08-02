@@ -102,13 +102,13 @@ object KommandSpec : Spek({
             val inputFile = path.toFile()
 
             it("should able to process string input") {
-                val inputStream = listOf("cat").execute(input = fileContent, output = System.out)
-                inputStream.shouldBeNull()
+                val inputStream = listOf("cat").execute(input = fileContent)
+                inputStream.shouldNotBeNull()
             }
 
             it("should able to process file input") {
-                val inputStream = listOf("cat").execute(input = inputFile, output = System.out)
-                inputStream.shouldBeNull()
+                val inputStream = listOf("cat").execute(input = inputFile)
+                inputStream.shouldNotBeNull()
             }
 
             it("should able to process InputStream input") {
@@ -125,6 +125,11 @@ object KommandSpec : Spek({
 
         on("Handling output") {
             val tmpDir: String = System.getProperty("java.io.tmpdir")
+
+            it("should able to redirect output to standard out") {
+                val inputStream = listOf("ls", "-alh").execute(output = System.out)
+                inputStream.shouldBeNull()
+            }
 
             it("should able to process file output") {
                 val outputFile = Paths.get(tmpDir, UUID.randomUUID().toString()).toFile()

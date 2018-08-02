@@ -17,14 +17,13 @@
 package id.jasoet.funkommand
 
 import arrow.core.Try
-import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import java.io.BufferedInputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.UUID
 import kotlin.reflect.full.isSuperclassOf
 
 
@@ -39,9 +38,10 @@ fun String.executeToString(
     input: Any? = null,
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
+    waitFor: Boolean = true,
     config: (ProcessBuilder) -> Unit = {}
 ): String {
-    return this.trim().split("\\s+".toRegex()).executeToString(input, environment, directory, config)
+    return this.trim().split("\\s+".toRegex()).executeToString(input, environment, directory, waitFor, config)
 }
 
 /**
@@ -55,9 +55,10 @@ fun List<String>.executeToString(
     input: Any? = null,
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
+    waitFor: Boolean = true,
     config: (ProcessBuilder) -> Unit = {}
 ): String {
-    val inputStream = this.execute(input, null, environment, directory, config)
+    val inputStream = this.execute(input, null, environment, directory, waitFor, config)
     return if (inputStream != null) {
         inputStream.use {
             IOUtils.toString(it, "UTF-8")
@@ -79,9 +80,10 @@ fun String.tryExecute(
     output: Any? = null,
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
+    waitFor: Boolean = true,
     config: (ProcessBuilder) -> Unit = {}
 ): Try<BufferedInputStream?> {
-    return this.trim().split("\\s+".toRegex()).tryExecute(input, output, environment, directory, config)
+    return this.trim().split("\\s+".toRegex()).tryExecute(input, output, environment, directory, waitFor, config)
 }
 
 /**
@@ -96,9 +98,10 @@ fun String.execute(
     output: Any? = null,
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
+    waitFor: Boolean = true,
     config: (ProcessBuilder) -> Unit = {}
 ): BufferedInputStream? {
-    return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, config)
+    return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, waitFor, config)
 }
 
 /**
@@ -113,10 +116,11 @@ fun List<String>.tryExecute(
     output: Any? = null,
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
+    waitFor: Boolean = true,
     config: (ProcessBuilder) -> Unit = {}
 ): Try<BufferedInputStream?> {
     return Try {
-        this.execute(input, output, environment, directory, config)
+        this.execute(input, output, environment, directory, waitFor, config)
     }
 }
 
@@ -144,6 +148,7 @@ fun List<String>.execute(
     output: Any? = null,
     environment: Map<String, String> = emptyMap(),
     directory: String = homeDir(),
+    waitFor: Boolean = true,
     config: (ProcessBuilder) -> Unit = {}
 ): BufferedInputStream? {
 
@@ -158,7 +163,6 @@ fun List<String>.execute(
 
     log.debug("Command to Execute ${this.joinToString(" ")}")
 
-    val tmpDir: String = System.getProperty("java.io.tmpdir")
     val processBuilder = ProcessBuilder(this)
 
     val env = processBuilder.environment()
@@ -168,41 +172,44 @@ fun List<String>.execute(
 
     config(processBuilder)
 
-    when (input) {
+    val process = when (input) {
         is File -> {
-            log.debug("Accept File Input")
+            log.debug("Redirect input from File")
             processBuilder.redirectInput(input)
+            processBuilder.start()
         }
         is InputStream -> {
-            log.debug("Accept InputStream Input")
-            val inputFile = File(tmpDir, UUID.randomUUID().toString())
-            FileUtils.copyInputStreamToFile(input, inputFile)
-            processBuilder.redirectInput(inputFile)
+            log.debug("Pipe Input from InputStream")
+            processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE)
+            val process = processBuilder.start()
+            copyStream(input, process.outputStream)
+            process
         }
         is String -> {
-            log.debug("Accept String Input")
-            val inputFile = File(tmpDir, UUID.randomUUID().toString())
-            FileUtils.writeStringToFile(inputFile, input, "UTF-8")
-            processBuilder.redirectInput(inputFile)
+            log.debug("Pipe Input from String Stream")
+            val stringStream = IOUtils.toInputStream(input, Charsets.UTF_8)
+            processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE)
+            val process = processBuilder.start()
+            copyStream(stringStream, process.outputStream)
+            process
         }
+        else -> processBuilder.start()
     }
 
     return when (output) {
         is File -> {
-            processBuilder.redirectOutput(output)
-            val process = processBuilder.start()
-            process.waitFor()
+            copyStream(process.inputStream, FileOutputStream(output))
+            if (waitFor) process.waitFor()
             null
         }
         is OutputStream -> {
-            val process = processBuilder.start()
-            process.waitFor()
             IOUtils.copy(process.inputStream, output)
+            if (waitFor) process.waitFor()
+
             null
         }
         else -> {
-            val process = processBuilder.start()
-            process.waitFor()
+            if (waitFor) process.waitFor()
             BufferedInputStream(process.inputStream)
         }
     }
@@ -213,6 +220,14 @@ private val supportedOutput = listOf(File::class, OutputStream::class)
 
 private fun homeDir(): String {
     return System.getProperty("user.home")
+}
+
+private fun copyStream(inputStream: InputStream, outputStream: OutputStream) {
+    inputStream.use { i ->
+        outputStream.use { o ->
+            IOUtils.copy(i, o)
+        }
+    }
 }
 
 
