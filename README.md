@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/jasoet/fun-kommand/branch/master/graph/badge.svg)](https://codecov.io/gh/jasoet/fun-kommand)
 [![Download](https://api.bintray.com/packages/jasoet/fun/fun-kommand/images/download.svg) ](https://bintray.com/jasoet/fun/fun-kommand/_latestVersion)
 
-Execute command-line by spawning ProcessBuilder
+Execute command-line by spawning ProcessBuilder. Available on JCenter.
 
 ## Features
 - Accept command as `String` or `List<String>`.
@@ -18,12 +18,10 @@ Execute command-line by spawning ProcessBuilder
 
 ## Gradle
 
-### Add maven repository url
+### Add JCenter repository
 ```groovy
 repositories {
-    maven {
-       url "https://dl.bintray.com/jasoet/fun"
-    }
+    jcenter()
 }
 ```
 
