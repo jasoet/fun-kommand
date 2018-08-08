@@ -10,14 +10,14 @@ buildscript {
         jUnitVersion = "5.1.0"
         spekVersion = "1.1.5"
         kluentVersion = "1.35"
-        commonsIOVersion = '2.5'
+        commonsIOVersion = '2.6'
         logbackVersion = "1.2.3"
     }
 
     repositories {
-        mavenLocal()
-        mavenCentral()
         jcenter()
+        mavenCentral()
+        mavenLocal()
     }
 }
 

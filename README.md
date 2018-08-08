@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/jasoet/fun-kommand.svg?branch=master)](https://travis-ci.org/jasoet/fun-kommand)
 [![codecov](https://codecov.io/gh/jasoet/fun-kommand/branch/master/graph/badge.svg)](https://codecov.io/gh/jasoet/fun-kommand)
 [![Download](https://api.bintray.com/packages/jasoet/fun/fun-kommand/images/download.svg) ](https://bintray.com/jasoet/fun/fun-kommand/_latestVersion)
+[![Maven Central](https://img.shields.io/maven-central/v/id.jasoet/fun-kommand.svg)](http://search.maven.org/#artifactdetails%7Cid.jasoet%7Cfun-kommand%7C1.0.5%7Cjar)
 
 Execute command-line by spawning ProcessBuilder. Available on JCenter.
 
