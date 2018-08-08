@@ -2,10 +2,10 @@
 
 [![Build Status](https://travis-ci.org/jasoet/fun-kommand.svg?branch=master)](https://travis-ci.org/jasoet/fun-kommand)
 [![codecov](https://codecov.io/gh/jasoet/fun-kommand/branch/master/graph/badge.svg)](https://codecov.io/gh/jasoet/fun-kommand)
-[![Download](https://api.bintray.com/packages/jasoet/fun/fun-kommand/images/download.svg) ](https://bintray.com/jasoet/fun/fun-kommand/_latestVersion)
+[![JCenter](https://api.bintray.com/packages/jasoet/fun/fun-kommand/images/download.svg)](https://bintray.com/jasoet/fun/fun-kommand/_latestVersion)
 [![Maven Central](https://img.shields.io/maven-central/v/id.jasoet/fun-kommand.svg)](http://search.maven.org/#artifactdetails%7Cid.jasoet%7Cfun-kommand%7C1.0.5%7Cjar)
 
-Execute command-line by spawning ProcessBuilder. Available on JCenter.
+Execute command-line by spawning ProcessBuilder. Available on JCenter and Maven Central.
 
 ## Features
 - Accept command as `String` or `List<String>`.
@@ -19,16 +19,33 @@ Execute command-line by spawning ProcessBuilder. Available on JCenter.
 
 ## Gradle
 
-### Add JCenter repository
+### Add Maven Central or JCenter repository
 ```groovy
 repositories {
     jcenter()
 }
 ```
 
+```groovy
+repositories {
+    mavenCentral()
+}
+```
+
 ### Add dependency 
 ```groovy
 compile 'id.jasoet:fun-kommand:<version>'
+```
+
+## Maven
+### Add dependency
+```xml
+<dependency>
+  <groupId>id.jasoet</groupId>
+  <artifactId>fun-kommand</artifactId>
+  <version>1.0.5</version>
+  <type>pom</type>
+</dependency>
 ```
 
 ## Usage
