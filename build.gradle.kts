@@ -129,11 +129,7 @@ publishing {
             pom {
                 name.set("fun-kommand")
                 description.set("Simple command-line wrapper for Kotlin")
-                url.set("http://www.example.com/library")
-                properties.set(mapOf(
-                        "myProp" to "value",
-                        "prop.with.dots" to "anotherValue"
-                ))
+                url.set("https://github.com/jasoet/fun-kommand")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
