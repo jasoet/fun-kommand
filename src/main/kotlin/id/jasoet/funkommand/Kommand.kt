@@ -16,7 +16,6 @@
 
 package id.jasoet.funkommand
 
-import arrow.core.Try
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import java.io.BufferedInputStream
@@ -69,24 +68,6 @@ fun List<String>.executeToString(
 }
 
 /**
- * Split `String`, execute and wrap it inside Try<BufferedInputStream?> monad
- * @see tryExecute
- *
- * @author Deny Prasetyo
- * @since 1.0.0
- */
-fun String.tryExecute(
-    input: Any? = null,
-    output: Any? = null,
-    environment: Map<String, String> = emptyMap(),
-    directory: String = homeDir(),
-    waitFor: Boolean = true,
-    config: (ProcessBuilder) -> Unit = {}
-): Try<BufferedInputStream?> {
-    return this.trim().split("\\s+".toRegex()).tryExecute(input, output, environment, directory, waitFor, config)
-}
-
-/**
  * Split `String` and execute it
  * @see execute
  *
@@ -102,26 +83,6 @@ fun String.execute(
     config: (ProcessBuilder) -> Unit = {}
 ): BufferedInputStream? {
     return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, waitFor, config)
-}
-
-/**
- * Execute command in form of List<String> and wrap it on Try<BufferedInputStream?> monad.
- * @see execute
- *
- * @author Deny Prasetyo
- * @since 1.0.0
- */
-fun List<String>.tryExecute(
-    input: Any? = null,
-    output: Any? = null,
-    environment: Map<String, String> = emptyMap(),
-    directory: String = homeDir(),
-    waitFor: Boolean = true,
-    config: (ProcessBuilder) -> Unit = {}
-): Try<BufferedInputStream?> {
-    return Try {
-        this.execute(input, output, environment, directory, waitFor, config)
-    }
 }
 
 /**

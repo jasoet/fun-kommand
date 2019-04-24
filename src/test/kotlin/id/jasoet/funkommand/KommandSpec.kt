@@ -18,13 +18,10 @@ package id.jasoet.funkommand
 
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeNull
-import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldNotBeNull
 import org.amshove.kluent.shouldNotBeNullOrBlank
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.IOException
@@ -35,18 +32,14 @@ import kotlin.test.assertFailsWith
 
 object KommandSpec : Spek({
 
-    given("Command Extension") {
+    describe("Command Extension") {
 
-        on("Executing Command") {
+        describe("Executing Command") {
             it("should return zero for success command") {
                 val inputStream = listOf("ls", "-alh").execute()
                 inputStream.shouldNotBeNull()
 
-                val tryReturn = listOf("ls", "-alh").tryExecute()
-                tryReturn.isSuccess() shouldEqualTo true
-
                 "ls -alh".execute().shouldNotBeNull()
-                "ls -alh ".tryExecute().isSuccess() shouldEqualTo true
             }
 
             it("should throw exception for non exist command") {
@@ -54,37 +47,29 @@ object KommandSpec : Spek({
                     listOf("notExistCommand", "-alh").execute()
                 }
 
-                val tryReturn = listOf("notExistCommand", "-alh").tryExecute()
-                tryReturn.isFailure() shouldEqualTo true
-
                 assertFailsWith(IOException::class) {
                     "notExistCommand -alh".execute()
                 }
 
-                "notExistCommand -alh".tryExecute().isFailure() shouldEqualTo true
             }
         }
 
-        on("Handling wrong input/output type") {
+        describe("Handling wrong input/output type") {
 
             it("should throw IllegalArgumentException when receive wrong input type") {
                 assertFailsWith(IllegalArgumentException::class) {
                     listOf("ls", "-alh").execute(input = 12)
                 }
-                val tryReturn = listOf("ls", "-alh").tryExecute(input = 24)
-                tryReturn.isSuccess() shouldEqualTo false
             }
 
             it("should throw IllegalArgumentException when receive wrong output type") {
                 assertFailsWith(IllegalArgumentException::class) {
                     listOf("ls", "-alh").execute(output = 12)
                 }
-                val tryReturn = listOf("ls", "-alh").tryExecute(output = 24)
-                tryReturn.isSuccess() shouldEqualTo false
             }
         }
 
-        on("Handling input") {
+        describe("Handling input") {
             val tmpDir: String = System.getProperty("java.io.tmpdir")
             val path = Paths.get(tmpDir, UUID.randomUUID().toString())
 
@@ -123,7 +108,7 @@ object KommandSpec : Spek({
         }
 
 
-        on("Handling output") {
+        describe("Handling output") {
             val tmpDir: String = System.getProperty("java.io.tmpdir")
 
             it("should able to redirect output to standard out") {

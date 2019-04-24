@@ -21,17 +21,15 @@ import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldNotBeNull
 import org.amshove.kluent.shouldNotBeNullOrBlank
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.UUID
 
 object InputSpec : Spek({
 
-    given("Input Extension") {
+    describe("Input Extension") {
 
         val fileContent = """
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
@@ -44,7 +42,7 @@ object InputSpec : Spek({
                     Proin ex nisi, accumsan et pretium in, euismod vitae lorem.
                 """.trimIndent()
 
-        on("Wrapping standard *nix command") {
+        describe("Wrapping standard *nix command") {
             val tmpDir: String = System.getProperty("java.io.tmpdir")
             val path = Paths.get(tmpDir, UUID.randomUUID().toString())
 
@@ -56,7 +54,7 @@ object InputSpec : Spek({
             }
         }
 
-        on("Handling Standard Input") {
+        describe("Handling Standard Input") {
 
             it("should return false when checking stdIn availability on test environment  ") {
                 standardInputAvailable() shouldBe false
@@ -71,7 +69,7 @@ object InputSpec : Spek({
             }
         }
 
-        on("piping some commands") {
+        describe("piping some commands") {
 
             it("should able to pipe more than one commands") {
 
