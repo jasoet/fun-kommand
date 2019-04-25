@@ -85,10 +85,10 @@ object InputSpec : Spek({
 
                 val result = "cat".execute(input = fileContent)
                     .pipe {
-                        "echo".execute(input = it)
+                        "echo".execute(input = it.second)
                     }
                     .pipe {
-                        "wc".execute(it)
+                        "wc".execute(it.second)
                     }
                     .toString()
 

@@ -34,13 +34,12 @@ import kotlin.reflect.full.isSuperclassOf
  * @since 1.0.0
  */
 fun String.executeToString(
-    input: Any? = null,
-    environment: Map<String, String> = emptyMap(),
-    directory: String = homeDir(),
-    waitFor: Boolean = true,
-    config: (ProcessBuilder) -> Unit = {}
+        input: Any? = null,
+        environment: Map<String, String> = emptyMap(),
+        directory: String = homeDir(),
+        config: (ProcessBuilder) -> Unit = {}
 ): String {
-    return this.trim().split("\\s+".toRegex()).executeToString(input, environment, directory, waitFor, config)
+    return this.trim().split("\\s+".toRegex()).executeToString(input, environment, directory, config)
 }
 
 /**
@@ -51,19 +50,18 @@ fun String.executeToString(
  * @since 1.0.0
  */
 fun List<String>.executeToString(
-    input: Any? = null,
-    environment: Map<String, String> = emptyMap(),
-    directory: String = homeDir(),
-    waitFor: Boolean = true,
-    config: (ProcessBuilder) -> Unit = {}
+        input: Any? = null,
+        environment: Map<String, String> = emptyMap(),
+        directory: String = homeDir(),
+        config: (ProcessBuilder) -> Unit = {}
 ): String {
-    val inputStream = this.execute(input, null, environment, directory, waitFor, config)
+    val (exitCode, inputStream) = this.execute(input, null, environment, directory, config)
     return if (inputStream != null) {
         inputStream.use {
             IOUtils.toString(it, "UTF-8")
         }
     } else {
-        ""
+        throw IllegalStateException("ExitCode [$exitCode], Input Stream should not be Null!")
     }
 }
 
@@ -75,14 +73,13 @@ fun List<String>.executeToString(
  * @since 1.0.0
  */
 fun String.execute(
-    input: Any? = null,
-    output: Any? = null,
-    environment: Map<String, String> = emptyMap(),
-    directory: String = homeDir(),
-    waitFor: Boolean = true,
-    config: (ProcessBuilder) -> Unit = {}
-): BufferedInputStream? {
-    return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, waitFor, config)
+        input: Any? = null,
+        output: Any? = null,
+        environment: Map<String, String> = emptyMap(),
+        directory: String = homeDir(),
+        config: (ProcessBuilder) -> Unit = {}
+): CommandOutput {
+    return this.trim().split("\\s+".toRegex()).execute(input, output, environment, directory, config)
 }
 
 /**
@@ -105,13 +102,12 @@ fun String.execute(
  */
 
 fun List<String>.execute(
-    input: Any? = null,
-    output: Any? = null,
-    environment: Map<String, String> = emptyMap(),
-    directory: String = homeDir(),
-    waitFor: Boolean = true,
-    config: (ProcessBuilder) -> Unit = {}
-): BufferedInputStream? {
+        input: Any? = null,
+        output: Any? = null,
+        environment: Map<String, String> = emptyMap(),
+        directory: String = homeDir(),
+        config: (ProcessBuilder) -> Unit = {}
+): CommandOutput {
 
     if (input != null && supportedInput.none { it.isSuperclassOf(input.javaClass.kotlin) }) {
         throw IllegalArgumentException("Input ${input.javaClass} is not supported!")
@@ -160,18 +156,29 @@ fun List<String>.execute(
     return when (output) {
         is File -> {
             copyStream(process.inputStream, FileOutputStream(output))
-            if (waitFor) process.waitFor()
-            null
+            val exitStatus = process.waitFor()
+            if (exitStatus == 0) {
+                exitStatus to null
+            } else {
+                exitStatus to process.errorStream
+            }
         }
         is OutputStream -> {
-            IOUtils.copy(process.inputStream, output)
-            if (waitFor) process.waitFor()
-
-            null
+            copyStream(process.inputStream, output)
+            val exitStatus = process.waitFor()
+            if (exitStatus == 0) {
+                exitStatus to null
+            } else {
+                exitStatus to process.errorStream
+            }
         }
         else -> {
-            if (waitFor) process.waitFor()
-            BufferedInputStream(process.inputStream)
+            val exitStatus = process.waitFor()
+            if (exitStatus == 0) {
+                exitStatus to process.inputStream
+            } else {
+                exitStatus to process.errorStream
+            }
         }
     }
 }
@@ -184,8 +191,8 @@ private fun homeDir(): String {
 }
 
 private fun copyStream(inputStream: InputStream, outputStream: OutputStream) {
-    inputStream.use { i ->
-        outputStream.use { o ->
+    outputStream.use { o ->
+        inputStream.use { i ->
             IOUtils.copy(i, o)
         }
     }

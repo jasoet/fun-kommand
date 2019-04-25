@@ -112,21 +112,21 @@ object KommandSpec : Spek({
             val tmpDir: String = System.getProperty("java.io.tmpdir")
 
             it("should able to redirect output to standard out") {
-                val inputStream = listOf("ls", "-alh").execute(output = System.out)
-                inputStream.shouldBeNull()
+                val result = listOf("ls", "-alh").execute(output = System.out)
+                result.second.shouldBeNull()
             }
 
             it("should able to process file output") {
                 val outputFile = Paths.get(tmpDir, UUID.randomUUID().toString()).toFile()
-                val inputStream = listOf("ls", "-alh").execute(output = outputFile)
-                inputStream.shouldBeNull()
+                val result = listOf("ls", "-alh").execute(output = outputFile)
+                result.second.shouldBeNull()
                 outputFile.exists() shouldBe true
             }
 
             it("should able to process OutputStream output") {
                 val byteOutputStream = ByteArrayOutputStream()
-                val inputStream = listOf("ls", "-alh").execute(output = byteOutputStream)
-                inputStream.shouldBeNull()
+                val result = listOf("ls", "-alh").execute(output = byteOutputStream)
+                result.second.shouldBeNull()
                 val stringResult = byteOutputStream.use {
                     it.toString(Charsets.UTF_8.name())
                 }

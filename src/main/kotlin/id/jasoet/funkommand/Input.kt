@@ -31,50 +31,52 @@ fun standardInputAvailable(): Boolean {
     return System.`in`.available() > 0
 }
 
-fun InputStream?.pipe(ops: (InputStream) -> InputStream?): InputStream? {
-    return if (this != null) {
+typealias CommandOutput = Pair<Int, InputStream?>
+
+fun CommandOutput.pipe(ops: (CommandOutput) -> CommandOutput): CommandOutput {
+    return if (this.second != null) {
         ops(this)
     } else {
-        null
+        this.first to null
     }
 }
 
-fun InputStream?.pipe(command: String): InputStream? {
-    return if (this != null) {
-        command.execute(this)
+fun CommandOutput.pipe(command: String): CommandOutput {
+    return if (this.second != null) {
+        command.execute(this.second)
     } else {
-        null
+        this.first to null
     }
 }
 
-fun InputStream?.asString(): String {
-    return if (this != null) {
-        IOUtils.toString(this, Charsets.UTF_8)
+fun CommandOutput.asString(): String {
+    return if (this.second != null) {
+        IOUtils.toString(this.second, Charsets.UTF_8)
     } else {
         ""
     }
 }
 
-fun InputStream?.asTempFile(): File? {
-    return this?.let {
+fun CommandOutput.asTempFile(): File? {
+    return this.second?.let {
         val tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp")
-        it.toFile(tempFile)
+        this.toFile(tempFile)
         tempFile
     }
 }
 
-fun InputStream?.toOutput(output: OutputStream) {
-    this?.use {
+fun CommandOutput.toOutput(output: OutputStream) {
+    this.second?.use {
         IOUtils.copy(it, output)
     }
 }
 
-fun InputStream?.toFile(file: File) {
-    this?.let {
+fun CommandOutput.toFile(file: File) {
+    this.second?.let {
         FileUtils.copyInputStreamToFile(it, file)
     }
 }
 
-fun InputStream?.print() {
+fun CommandOutput.print() {
     this.toOutput(System.out)
 }

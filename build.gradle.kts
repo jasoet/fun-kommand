@@ -2,7 +2,7 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val kotlinVersion = "1.3.21"
+val kotlinVersion = "1.3.30"
 val commonsIoVersion = "2.6"
 val slf4jApiVersion = "1.7.26"
 
