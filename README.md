@@ -36,7 +36,7 @@ compile 'id.jasoet:fun-kommand:<version>'
 <dependency>
   <groupId>id.jasoet</groupId>
   <artifactId>fun-kommand</artifactId>
-  <version>1.0.5</version>
+  <version>[VERSION]</version>
   <type>pom</type>
 </dependency>
 ```
