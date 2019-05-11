@@ -16,6 +16,7 @@
 
 package id.jasoet.funkommand
 
+import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldEqualTo
@@ -49,8 +50,10 @@ object InputSpec : Spek({
             Files.write(path, fileContent.toByteArray())
             val inputFile = path.toFile()
             it("Should able to count line from file using wc command") {
-                val countOnString = "wc -l".executeToString(input = inputFile)
-                countOnString.trim().toInt() shouldEqualTo 7
+                runBlocking {
+                    val countOnString = "wc -l".execute(input = inputFile).asString()
+                    countOnString.trim().toInt() shouldEqualTo 7
+                }
             }
         }
 
@@ -60,9 +63,6 @@ object InputSpec : Spek({
                 standardInputAvailable() shouldBe false
             }
 
-            it("should return empty seq when getting stdIn  on test environment  ") {
-                sequenceInput.toList().shouldBeEmpty()
-            }
 
             it("standardInput should not be null") {
                 standardInput.shouldNotBeNull()
@@ -72,27 +72,26 @@ object InputSpec : Spek({
         describe("piping some commands") {
 
             it("should able to pipe more than one commands") {
+                runBlocking {
+                    val result = "cat".execute(input = fileContent)
+                            .pipe("echo")
+                            .pipe("wc")
+                            .asString()
 
-                val result = "cat".execute(input = fileContent)
-                    .pipe("echo")
-                    .pipe("wc")
-                    .toString()
-
-                result.shouldNotBeNullOrBlank()
+                    result.shouldNotBeNullOrBlank()
+                }
             }
 
-            it("should able to pipe more than one commands with lamba parameter") {
+            it("should able to pipe shell ") {
 
-                val result = "cat".execute(input = fileContent)
-                    .pipe {
-                        "echo".execute(input = it.second)
-                    }
-                    .pipe {
-                        "wc".execute(it.second)
-                    }
-                    .toString()
+                runBlocking {
+                    val result = "cat".execute(input = fileContent)
+                            .pipeShell("echo")
+                            .pipeShell("wc")
+                            .asString()
 
-                result.shouldNotBeNullOrBlank()
+                    result.shouldNotBeNullOrBlank()
+                }
             }
         }
     }

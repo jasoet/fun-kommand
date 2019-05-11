@@ -16,12 +16,14 @@
 
 package id.jasoet.funkommand
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.UUID
 
 val sequenceInput: Sequence<String> by lazy { generateSequence { readLine() } }
 
@@ -31,52 +33,67 @@ fun standardInputAvailable(): Boolean {
     return System.`in`.available() > 0
 }
 
-typealias CommandOutput = Pair<Int, InputStream?>
+suspend fun Process.pipe(command: String,
+                         environment: Map<String, String> = emptyMap(),
+                         directory: String = pwd()): Process {
+    return command.execute(this.inputStream, environment, directory)
+}
 
-fun CommandOutput.pipe(ops: (CommandOutput) -> CommandOutput): CommandOutput {
-    return if (this.second != null) {
-        ops(this)
-    } else {
-        this.first to null
+suspend fun Process.pipeShell(command: String,
+                              environment: Map<String, String> = emptyMap(),
+                              directory: String = pwd()): Process {
+    return command.executeShell(this.inputStream, environment, directory)
+}
+
+suspend operator fun Process.invoke(
+        errorHandler: suspend CoroutineScope.(InputStream) -> Unit = {},
+        outputHandler: suspend CoroutineScope.(InputStream) -> Unit = {}
+): Process {
+    return this.handle(errorHandler, outputHandler)
+}
+
+suspend fun Process.handle(
+        errorHandler: suspend CoroutineScope.(InputStream) -> Unit = {},
+        outputHandler: suspend CoroutineScope.(InputStream) -> Unit = {}
+): Process {
+    val process = this
+    return coroutineScope {
+        launch {
+            outputHandler(process.inputStream)
+        }
+
+        launch {
+            errorHandler(process.errorStream)
+        }
+
+        process
     }
 }
 
-fun CommandOutput.pipe(command: String): CommandOutput {
-    return if (this.second != null) {
-        command.execute(this.second)
-    } else {
-        this.first to null
-    }
+fun Process.asString(): String {
+    val result = IOUtils.toString(this.inputStream, Charsets.UTF_8)
+    this.waitFor()
+    return result
 }
 
-fun CommandOutput.asString(): String {
-    return if (this.second != null) {
-        IOUtils.toString(this.second, Charsets.UTF_8)
-    } else {
-        ""
-    }
+fun Process.asTempFile(): File {
+    val result = createTempFile()
+    FileUtils.copyInputStreamToFile(this.inputStream, result)
+    this.waitFor()
+    return result
 }
 
-fun CommandOutput.asTempFile(): File? {
-    return this.second?.let {
-        val tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp")
-        this.toFile(tempFile)
-        tempFile
-    }
+fun Process.toFile(file: File): Int {
+    FileUtils.copyInputStreamToFile(this.inputStream, file)
+    return this.waitFor()
 }
 
-fun CommandOutput.toOutput(output: OutputStream) {
-    this.second?.use {
-        IOUtils.copy(it, output)
-    }
+fun Process.toOutput(output: OutputStream): Int {
+    IOUtils.copy(this.inputStream, output)
+    return this.waitFor()
 }
 
-fun CommandOutput.toFile(file: File) {
-    this.second?.let {
-        FileUtils.copyInputStreamToFile(it, file)
-    }
-}
-
-fun CommandOutput.print() {
+fun Process.print(): Int {
     this.toOutput(System.out)
+    return this.waitFor()
 }

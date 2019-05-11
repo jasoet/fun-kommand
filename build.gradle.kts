@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val kotlinVersion = "1.3.30"
 val commonsIoVersion = "2.6"
 val slf4jApiVersion = "1.7.26"
+val coroutineVersion = "1.2.1"
 
 val jUnitVersion = "5.4.2"
 val spekVersion = "2.0.2"
@@ -22,6 +23,7 @@ val bintrayApiKey = System.getenv("BINTRAY_API_KEY") ?: findProperty("bintrayApi
 plugins {
     `maven-publish`
     jacoco
+    idea
 
     kotlin("jvm") version "1.3.21"
     id("io.gitlab.arturbosch.detekt").version("1.0.0.RC9")
@@ -41,6 +43,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("org.slf4j:slf4j-api:$slf4jApiVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
@@ -148,6 +151,13 @@ publishing {
                 }
             }
         }
+    }
+}
+
+idea {
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
     }
 }
 

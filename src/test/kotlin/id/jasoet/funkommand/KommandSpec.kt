@@ -16,13 +16,10 @@
 
 package id.jasoet.funkommand
 
-import org.amshove.kluent.shouldBe
-import org.amshove.kluent.shouldBeNull
+import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldNotBeNull
-import org.amshove.kluent.shouldNotBeNullOrBlank
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.file.Files
@@ -36,19 +33,25 @@ object KommandSpec : Spek({
 
         describe("Executing Command") {
             it("should return zero for success command") {
-                val inputStream = listOf("ls", "-alh").execute()
-                inputStream.shouldNotBeNull()
+                runBlocking {
+                    val result = listOf("ls", "-alh").execute().asString()
+                    result.shouldNotBeNull()
 
-                "ls -alh".execute().shouldNotBeNull()
+                    "ls -alh".execute().asString().shouldNotBeNull()
+                }
             }
 
             it("should throw exception for non exist command") {
                 assertFailsWith(IOException::class) {
-                    listOf("notExistCommand", "-alh").execute()
+                    runBlocking {
+                        listOf("notExistCommand", "-alh").execute()
+                    }
                 }
 
                 assertFailsWith(IOException::class) {
-                    "notExistCommand -alh".execute()
+                    runBlocking {
+                        "notExistCommand -alh".execute()
+                    }
                 }
 
             }
@@ -58,13 +61,9 @@ object KommandSpec : Spek({
 
             it("should throw IllegalArgumentException when receive wrong input type") {
                 assertFailsWith(IllegalArgumentException::class) {
-                    listOf("ls", "-alh").execute(input = 12)
-                }
-            }
-
-            it("should throw IllegalArgumentException when receive wrong output type") {
-                assertFailsWith(IllegalArgumentException::class) {
-                    listOf("ls", "-alh").execute(output = 12)
+                    runBlocking {
+                        listOf("ls", "-alh").execute(input = 12)
+                    }
                 }
             }
         }
@@ -87,51 +86,24 @@ object KommandSpec : Spek({
             val inputFile = path.toFile()
 
             it("should able to process string input") {
-                val inputStream = listOf("cat").execute(input = fileContent)
-                inputStream.shouldNotBeNull()
+                runBlocking {
+                    val result = listOf("cat").execute(input = fileContent).asString()
+                    result.shouldNotBeNull()
+                }
             }
 
             it("should able to process file input") {
-                val inputStream = listOf("cat").execute(input = inputFile)
-                inputStream.shouldNotBeNull()
+                runBlocking {
+                    val result = listOf("cat").execute(input = inputFile).asString()
+                    result.shouldNotBeNull()
+                }
             }
 
             it("should able to process InputStream input") {
-                val inputStream = "cat".execute(input = FileInputStream(inputFile))
-                inputStream.shouldNotBeNull()
-            }
-
-            it("should able to process file input and return String") {
-                val inputStream = "cat".executeToString(input = inputFile)
-                inputStream.shouldNotBeNullOrBlank()
-            }
-        }
-
-
-        describe("Handling output") {
-            val tmpDir: String = System.getProperty("java.io.tmpdir")
-
-            it("should able to redirect output to standard out") {
-                val result = listOf("ls", "-alh").execute(output = System.out)
-                result.second.shouldBeNull()
-            }
-
-            it("should able to process file output") {
-                val outputFile = Paths.get(tmpDir, UUID.randomUUID().toString()).toFile()
-                val result = listOf("ls", "-alh").execute(output = outputFile)
-                result.second.shouldBeNull()
-                outputFile.exists() shouldBe true
-            }
-
-            it("should able to process OutputStream output") {
-                val byteOutputStream = ByteArrayOutputStream()
-                val result = listOf("ls", "-alh").execute(output = byteOutputStream)
-                result.second.shouldBeNull()
-                val stringResult = byteOutputStream.use {
-                    it.toString(Charsets.UTF_8.name())
+                runBlocking {
+                    val result = listOf("cat").execute(input = FileInputStream(inputFile)).asString()
+                    result.shouldNotBeNull()
                 }
-                println(stringResult)
-                stringResult.shouldNotBeNullOrBlank()
             }
 
         }
