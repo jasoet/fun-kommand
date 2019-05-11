@@ -76,13 +76,13 @@ suspend fun List<String>.execute(
     }
 }
 
-suspend fun List<String>.executeShell(
+suspend fun String.executeShell(
         input: Any? = null,
         environment: Map<String, String> = emptyMap(),
         directory: String = pwd(),
         combineOutput: Boolean = false
 ): Process {
-    val shellCommand = listOf("/bin/sh", "-c", "\"${this.joinToString(" ")}\"")
+    val shellCommand = listOf("/bin/sh", "-c", this)
     return shellCommand.execute(input, environment, directory, combineOutput)
 }
 
@@ -93,15 +93,6 @@ suspend fun String.execute(
         combineOutput: Boolean = false
 ): Process {
     return this.split("\\s+".toRegex()).execute(input, environment, directory, combineOutput)
-}
-
-suspend fun String.executeShell(
-        input: Any? = null,
-        environment: Map<String, String> = emptyMap(),
-        directory: String = pwd(),
-        combineOutput: Boolean = false
-): Process {
-    return this.split("\\s+".toRegex()).executeShell(input, environment, directory, combineOutput)
 }
 
 suspend fun String.executeToString(
@@ -119,7 +110,7 @@ suspend fun String.executeShellToString(
         directory: String = pwd(),
         combineOutput: Boolean = false
 ): String {
-    return this.split("\\s+".toRegex()).executeShell(input, environment, directory, combineOutput).asString()
+    return this.executeShell(input, environment, directory, combineOutput).asString()
 }
 
 private val supportedInput = listOf(File::class, InputStream::class, String::class)
